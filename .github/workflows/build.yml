@@ -33,6 +33,8 @@ jobs:
           fi
       - name: Сброс кэша jsDelivr
         run: |
+          failed=0
           for f in shadowrocket.conf rules/*.list; do
-            curl -fsS "https://purge.jsdelivr.net/gh/${GITHUB_REPOSITORY}@main/$f" -o /dev/null && echo "purged $f"
+            if curl -fsS "https://purge.jsdelivr.net/gh/${GITHUB_REPOSITORY}@main/$f" -o /dev/null; then echo "purged $f"; else echo "::error::purge failed: $f"; failed=1; fi
           done
+          exit $failed

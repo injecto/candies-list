@@ -1,0 +1,6 @@
+DOMAIN-SUFFIX,.ua
+DOMAIN-SUFFIX,1337x.to
+# comment
+
+DOMAIN-SUFFIX,1337x.to
+DOMAIN,exact.example.org

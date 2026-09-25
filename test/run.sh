@@ -51,4 +51,10 @@ SRC_BASE="file://$E" "$ROOT/build.sh" "$O" 2>/dev/null && bad "shrink >2x reject
 # 8. 404 источника → ошибка
 O=$(new_out); SRC_BASE="file:///nonexistent" "$ROOT/build.sh" "$O" 2>/dev/null && bad "missing source rejected" || ok "missing source rejected"
 
+# 9. последняя строка custom-proxy.list без завершающего перевода строки (веб-редактор GitHub так сохраняет)
+O=$(new_out); printf 'example.org' >> "$O/rules/custom-proxy.list"
+if SRC_BASE=$FIX "$ROOT/build.sh" "$O" 2>"$O/err"; then bad "no trailing newline: bad last line rejected"; else grep -q 'custom-proxy.list:.*example.org' "$O/err" && ok "no trailing newline: bad last line rejected with line" || bad "no trailing newline: bad last line message: $(cat "$O/err")"; fi
+O=$(new_out); printf 'DOMAIN-SUFFIX,example.org' >> "$O/rules/custom-proxy.list"
+SRC_BASE=$FIX "$ROOT/build.sh" "$O" >/dev/null 2>&1 && ok "no trailing newline: valid last line still builds" || bad "no trailing newline: valid last line still builds"
+
 exit $fail

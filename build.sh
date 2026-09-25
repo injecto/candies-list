@@ -46,7 +46,7 @@ fetch Subnets/IPv4/meta.lst | clean | sed -E 's/^/IP-CIDR,/; s/$/,no-resolve/' \
 CUSTOM=$OUT/rules/custom-proxy.list
 [[ -f $CUSTOM ]] || die "нет $CUSTOM"
 n=0
-while IFS= read -r line; do
+while IFS= read -r line || [[ -n $line ]]; do
   n=$((n+1))
   l=$(clean <<<"$line")
   [[ -z $l ]] && continue

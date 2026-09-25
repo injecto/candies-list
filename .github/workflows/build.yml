@@ -1,0 +1,38 @@
+name: build
+
+on:
+  push:
+    branches: [main]
+  schedule:
+    - cron: "17 3 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Тесты
+        run: test/run.sh
+      - name: Сборка
+        run: ./build.sh
+      - name: Коммит, если изменилось что-то кроме UPDATED
+        run: |
+          if git diff -I '^# UPDATED' --quiet; then
+            git checkout -- .
+            echo "без изменений"
+          else
+            git config user.name "candies-bot"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git add rules shadowrocket.conf
+            git commit -m "Обновление списков $(date -u +%F)"
+            git push
+          fi
+      - name: Сброс кэша jsDelivr
+        run: |
+          for f in shadowrocket.conf rules/*.list; do
+            curl -fsS "https://purge.jsdelivr.net/gh/${GITHUB_REPOSITORY}@main/$f" -o /dev/null && echo "purged $f"
+          done

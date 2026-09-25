@@ -2,3 +2,4 @@
 # Ручные исключения: сайты, которые надо пускать через VPN, но их нет в itdoginfo.
 # Формат строки: DOMAIN-SUFFIX,<домен>  (или DOMAIN, DOMAIN-KEYWORD, IP-CIDR,<сеть>,no-resolve)
 DOMAIN-SUFFIX,thomannmusic.com
+DOMAIN-SUFFIX,candies-test.example

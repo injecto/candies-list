@@ -10,11 +10,15 @@ on:
 permissions:
   contents: write
 
+concurrency:
+  group: build
+  cancel-in-progress: false
+
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - name: Тесты
         run: test/run.sh
       - name: Сборка
@@ -29,6 +33,7 @@ jobs:
             git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
             git add rules shadowrocket.conf
             git commit -m "Обновление списков $(date -u +%F)"
+            git pull --rebase
             git push
           fi
       - name: Сброс кэша jsDelivr

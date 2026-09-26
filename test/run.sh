@@ -57,4 +57,24 @@ if SRC_BASE=$FIX "$ROOT/build.sh" "$O" 2>"$O/err"; then bad "no trailing newline
 O=$(new_out); printf 'DOMAIN-SUFFIX,example.org' >> "$O/rules/custom-proxy.list"
 SRC_BASE=$FIX "$ROOT/build.sh" "$O" >/dev/null 2>&1 && ok "no trailing newline: valid last line still builds" || bad "no trailing newline: valid last line still builds"
 
+# 10. инлайн-комментарий в custom-proxy.list — строка должна быть отвергнута целиком,
+#     а не молча обрезана: клиенты (mihomo/Shadowrocket) режут комментарий только если
+#     '#' — первый символ строки, иначе payload доходит с хвостом " # note".
+O=$(new_out); echo "DOMAIN-SUFFIX,example.com  # note" >> "$O/rules/custom-proxy.list"
+if SRC_BASE=$FIX "$ROOT/build.sh" "$O" 2>"$O/err"; then bad "inline comment rejected"; else grep -q 'custom-proxy.list:.*example.com' "$O/err" && ok "inline comment rejected" || bad "inline comment message: $(cat "$O/err")"; fi
+[[ ! -e $O/shadowrocket.conf ]] && ok "nothing written on inline comment" || bad "nothing written on inline comment"
+
+# 11. сгенерированный список (не custom-proxy) тоже должен проходить проверку формата:
+#     если itdoginfo вместо файла отдал HTML-страницу (404/бан), это не должно молча
+#     стать "правилом" в rules/telegram.list.
+O=$(new_out); SRC_BASE=$FIX "$ROOT/build.sh" "$O" >/dev/null 2>&1; cp "$O/rules/telegram.list" "$O/telegram.before"
+E=$(mktemp -d); cp -r "$ROOT/test/fixtures/." "$E/"
+printf '<!DOCTYPE html>\n<html>\n<head></head>\n<body>\n<h1>404</h1>\n</html>\n' > "$E/Services/telegram.lst"
+if SRC_BASE="file://$E" "$ROOT/build.sh" "$O" 2>"$O/err"; then bad "html source rejected"; else grep -qi 'telegram' "$O/err" && ok "html source rejected, names list" || bad "html source message: $(cat "$O/err")"; fi
+cmp -s "$O/telegram.before" "$O/rules/telegram.list" && ok "old list kept on html source" || bad "old list kept on html source"
+
+# 12. кириллический домен в custom-proxy.list — понятная ошибка про punycode
+O=$(new_out); printf 'DOMAIN-SUFFIX,пример.рф\n' >> "$O/rules/custom-proxy.list"
+if SRC_BASE=$FIX "$ROOT/build.sh" "$O" 2>"$O/err"; then bad "cyrillic domain rejected"; else grep -qi 'punycode\|xn--' "$O/err" && ok "cyrillic domain message mentions punycode" || bad "cyrillic domain message: $(cat "$O/err")"; fi
+
 exit $fail

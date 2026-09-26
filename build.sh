@@ -15,12 +15,26 @@ die() { echo "build: $*" >&2; exit 1; }
 fetch() { curl -fsSL --retry 3 --max-time 60 "$SRC_BASE/$1" || die "не скачался $1"; }
 clean() { tr -d '\r' | sed -E 's/#.*//; s/^[[:space:]]+//; s/[[:space:]]+$//' | { grep -v '^$' || true; }; }
 
-# write_list <name> <source> : тело со stdin → TMP/rules/<name>.list, с проверками размера
+# Единый формат строки правила — используется и для custom-proxy.list, и для тела
+# каждого сгенерированного списка (чтобы, например, HTML-страница ошибки, отданная
+# вместо файла источником, не превратилась молча в "правило").
+# Кириллические домены сюда не проходят — только punycode (xn--…).
+OCT='(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])'
+IPV4="${OCT}\\.${OCT}\\.${OCT}\\.${OCT}"
+PREFIX='(3[0-2]|[12]?[0-9])'
+RULE_RE="^(DOMAIN|DOMAIN-SUFFIX|DOMAIN-KEYWORD),[A-Za-z0-9._-]+\$|^IP-CIDR,${IPV4}/${PREFIX}(,no-resolve)?\$"
+is_rule() { [[ $1 =~ $RULE_RE ]]; }
+
+# write_list <name> <source> : тело со stdin → TMP/rules/<name>.list, с проверками размера и формата
 write_list() {
-  local name=$1 src=$2 body old new
+  local name=$1 src=$2 body old new n=0 l
   body=$(sort -u)
   new=$(grep -c . <<<"$body" || true)
   [[ $new -gt 0 ]] || die "$name: источник $src пуст"
+  while IFS= read -r l; do
+    n=$((n+1))
+    is_rule "$l" || die "$name.list: строка $n не похожа на правило (источник $src): '$l'"
+  done <<<"$body"
   if [[ -f $OUT/rules/$name.list ]]; then
     old=$(grep -vc '^#' "$OUT/rules/$name.list" || true)
     (( new * 2 >= old )) || die "$name: было $old строк, стало $new — источник, похоже, сломан"
@@ -43,16 +57,20 @@ fetch Subnets/IPv4/meta.lst | clean | sed -E 's/^/IP-CIDR,/; s/$/,no-resolve/' \
   | write_list meta-ip "itdoginfo Subnets/IPv4/meta.lst"
 
 # Ручной список: каждая строка обязана быть правилом, иначе клиенты её молча выбросят.
+# Комментарий допустим только на всю строку (первый непробельный символ — '#'):
+# инлайн-хвост " # note" mihomo/Shadowrocket не режут — они пропускают строку целиком,
+# только если '#' стоит первым символом, поэтому инлайн-комментарий тут — ошибка, а не
+# то, что можно молча обрезать.
 CUSTOM=$OUT/rules/custom-proxy.list
 [[ -f $CUSTOM ]] || die "нет $CUSTOM"
 n=0
 while IFS= read -r line || [[ -n $line ]]; do
   n=$((n+1))
-  l=$(clean <<<"$line")
+  l=$(tr -d '\r' <<<"$line" | sed -E 's/^[[:space:]]+//; s/[[:space:]]+$//')
   [[ -z $l ]] && continue
-  [[ $l =~ ^(DOMAIN|DOMAIN-SUFFIX|DOMAIN-KEYWORD),[A-Za-z0-9._-]+$ \
-     || $l =~ ^IP-CIDR,[0-9.]+/[0-9]{1,2}(,no-resolve)?$ ]] \
-    || die "custom-proxy.list:$n: '$l' — нужен вид DOMAIN-SUFFIX,<домен> или IP-CIDR,<сеть>,no-resolve"
+  [[ $l == \#* ]] && continue
+  is_rule "$l" \
+    || die "custom-proxy.list:$n: '$l' — нужен вид DOMAIN-SUFFIX,<домен> или IP-CIDR,<сеть>,no-resolve; кириллические домены — в punycode (xn--…)"
 done < "$CUSTOM"
 
 cat > "$TMP/shadowrocket.conf" <<EOF

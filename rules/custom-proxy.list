@@ -1,4 +1,5 @@
 # NAME: custom-proxy.list
 # Ручные исключения: сайты, которые надо пускать через VPN, но их нет в itdoginfo.
 # Формат строки: DOMAIN-SUFFIX,<домен>  (или DOMAIN, DOMAIN-KEYWORD, IP-CIDR,<сеть>,no-resolve)
+# Кириллические домены — в punycode (xn--…), не как есть (например, xn--e1aybc.xn--p1ai вместо пример.рф)
 DOMAIN-SUFFIX,thomannmusic.com

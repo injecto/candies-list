@@ -30,5 +30,8 @@ GitHub сам отключает scheduled workflow в публичном реп
 |---|---|
 | custom-proxy.list | вручную |
 | ru-inside.list | itdoginfo/allow-domains Russia/inside |
+| hodca.list | itdoginfo Categories/hodca — сайты на Hetzner/OVH/DigitalOcean/Cloudflare/AWS/Akamai, которые режут по хостингу |
+| google-ai.list | itdoginfo Services/google_ai (Gemini, AI Studio…) |
+| google-meet.list, google-meet-ip.list | itdoginfo Services/google_meet, Subnets/IPv4/google_meet (звук и видео звонков идут по UDP без домена — только по IP) |
 | telegram.list, telegram-ip.list | itdoginfo Services/telegram, Subnets/IPv4/telegram |
 | meta-ip.list | itdoginfo Subnets/IPv4/meta (Meta только по IP: SNI скрыт за ECH) |

@@ -1,6 +1,6 @@
 # NAME: telegram.list
 # SOURCE: itdoginfo Services/telegram.lst
-# UPDATED: 2026-09-25T17:56:36Z
+# UPDATED: 2026-09-26T11:15:37Z
 # TOTAL: 20
 DOMAIN-SUFFIX,cdn-telegram.org
 DOMAIN-SUFFIX,comments.app

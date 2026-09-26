@@ -46,15 +46,21 @@ write_list() {
     echo "$body"; } > "$TMP/rules/$name.list"
 }
 
+# domains <источник> <имя>: голый список доменов → DOMAIN-SUFFIX (ведущая точка убирается)
+domains() { fetch "$1" | clean | sed -E 's/^\.//; s/^/DOMAIN-SUFFIX,/' | write_list "$2" "itdoginfo $1"; }
+# subnets <источник> <имя>: список подсетей → IP-CIDR,…,no-resolve
+subnets() { fetch "$1" | clean | sed -E 's/^/IP-CIDR,/; s/$/,no-resolve/' | write_list "$2" "itdoginfo $1"; }
+
 fetch Russia/inside-clashx.lst | clean \
   | sed -E 's/^(DOMAIN|DOMAIN-SUFFIX|DOMAIN-KEYWORD),\./\1,/' \
   | write_list ru-inside "itdoginfo Russia/inside-clashx.lst"
-fetch Services/telegram.lst | clean | sed -E 's/^\.//; s/^/DOMAIN-SUFFIX,/' \
-  | write_list telegram "itdoginfo Services/telegram.lst"
-fetch Subnets/IPv4/telegram.lst | clean | sed -E 's/^/IP-CIDR,/; s/$/,no-resolve/' \
-  | write_list telegram-ip "itdoginfo Subnets/IPv4/telegram.lst"
-fetch Subnets/IPv4/meta.lst | clean | sed -E 's/^/IP-CIDR,/; s/$/,no-resolve/' \
-  | write_list meta-ip "itdoginfo Subnets/IPv4/meta.lst"
+domains Categories/hodca.lst        hodca           # сайты на Hetzner/OVH/DO/Cloudflare/AWS/Akamai — их режут по хостингу
+domains Services/google_ai.lst      google-ai
+domains Services/google_meet.lst    google-meet
+domains Services/telegram.lst       telegram
+subnets Subnets/IPv4/telegram.lst   telegram-ip
+subnets Subnets/IPv4/meta.lst       meta-ip         # Meta по IP: у Quest SNI скрыт за ECH
+subnets Subnets/IPv4/google_meet.lst google-meet-ip # медиа звонков Meet — UDP без домена, ловится только по IP
 
 # Ручной список: каждая строка обязана быть правилом, иначе клиенты её молча выбросят.
 # Комментарий допустим только на всю строку (первый непробельный символ — '#'):
@@ -91,13 +97,17 @@ update-url = $CDN_BASE/shadowrocket.conf
 [Rule]
 RULE-SET,$CDN_BASE/rules/custom-proxy.list,PROXY
 RULE-SET,$CDN_BASE/rules/ru-inside.list,PROXY
+RULE-SET,$CDN_BASE/rules/hodca.list,PROXY
+RULE-SET,$CDN_BASE/rules/google-ai.list,PROXY
+RULE-SET,$CDN_BASE/rules/google-meet.list,PROXY
 RULE-SET,$CDN_BASE/rules/telegram.list,PROXY
 RULE-SET,$CDN_BASE/rules/telegram-ip.list,PROXY,no-resolve
 RULE-SET,$CDN_BASE/rules/meta-ip.list,PROXY,no-resolve
+RULE-SET,$CDN_BASE/rules/google-meet-ip.list,PROXY,no-resolve
 FINAL,DIRECT
 EOF
 
 mkdir -p "$OUT/rules"
 cp "$TMP"/rules/*.list "$OUT/rules/"
 cp "$TMP/shadowrocket.conf" "$OUT/"
-echo "build: ok ($(grep -h '^# TOTAL' "$OUT"/rules/{ru-inside,telegram,telegram-ip,meta-ip}.list | awk '{s=s" "$3} END{print s}'))"
+echo "build: ok ($(grep -h '^# TOTAL' "$OUT"/rules/{ru-inside,hodca,google-ai,google-meet,telegram,telegram-ip,meta-ip,google-meet-ip}.list | awk '{s=s" "$3} END{print s}'))"

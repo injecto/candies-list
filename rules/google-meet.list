@@ -1,0 +1,9 @@
+# NAME: google-meet.list
+# SOURCE: itdoginfo Services/google_meet.lst
+# UPDATED: 2026-09-26T11:15:37Z
+# TOTAL: 5
+DOMAIN-SUFFIX,hangouts.googleapis.com
+DOMAIN-SUFFIX,meet.google.com
+DOMAIN-SUFFIX,meetings.clients6.google.com
+DOMAIN-SUFFIX,meetings.googleapis.com
+DOMAIN-SUFFIX,stream.meet.google.com

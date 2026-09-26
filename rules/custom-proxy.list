@@ -2,4 +2,17 @@
 # Ручные исключения: сайты, которые надо пускать через VPN, но их нет в itdoginfo.
 # Формат строки: DOMAIN-SUFFIX,<домен>  (или DOMAIN, DOMAIN-KEYWORD, IP-CIDR,<сеть>,no-resolve)
 # Кириллические домены — в punycode (xn--…), не как есть (например, xn--e1aybc.xn--p1ai вместо пример.рф)
+# Проверено 26.09.2026 с домашнего Ростелекома: без VPN не работают, в списках itdoginfo их нет.
+# Обрыв загрузки на 8–18 КБ (режут хостинг):
+DOMAIN-SUFFIX,desnitsky.net
+DOMAIN-SUFFIX,guitarclub.io
 DOMAIN-SUFFIX,thomannmusic.com
+# Грузится медленно (~6 с):
+DOMAIN-SUFFIX,rtings.com
+# 403 для российских IP:
+DOMAIN-SUFFIX,equipboard.com
+DOMAIN-SUFFIX,guitarcenter.com
+DOMAIN-SUFFIX,justinguitar.com
+DOMAIN-SUFFIX,steamdb.info
+# Не соединяется:
+DOMAIN-SUFFIX,opencritic.com

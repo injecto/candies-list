@@ -15,11 +15,16 @@ O=$(new_out); SRC_BASE=$FIX "$ROOT/build.sh" "$O" >/dev/null 2>&1 || bad "build 
 [[ $(body "$O/rules/telegram.list") == $'DOMAIN-SUFFIX,cdn-telegram.org\nDOMAIN-SUFFIX,t.me\nDOMAIN-SUFFIX,telegram.org' ]] && ok "telegram domains" || bad "telegram domains: $(body "$O/rules/telegram.list" | tr '\n' '|')"
 [[ $(body "$O/rules/telegram-ip.list") == $'IP-CIDR,5.28.192.0/18,no-resolve\nIP-CIDR,91.108.4.0/22,no-resolve' ]] && ok "telegram ips" || bad "telegram ips: $(body "$O/rules/telegram-ip.list" | tr '\n' '|')"
 grep -q '^# TOTAL: 2$' "$O/rules/meta-ip.list" && ok "header TOTAL" || bad "header TOTAL"
+[[ $(body "$O/rules/hodca.list") == $'DOMAIN-SUFFIX,cdn.web-global.fds.api.mi-img.com\nDOMAIN-SUFFIX,hetzner-hosted.example' ]] && ok "hodca domains" || bad "hodca domains: $(body "$O/rules/hodca.list" | tr '\n' '|')"
+[[ $(body "$O/rules/google-ai.list") == $'DOMAIN-SUFFIX,aistudio.google.com\nDOMAIN-SUFFIX,gemini.google.com' ]] && ok "google-ai domains" || bad "google-ai domains: $(body "$O/rules/google-ai.list" | tr '\n' '|')"
+[[ $(body "$O/rules/google-meet.list") == $'DOMAIN-SUFFIX,meet.google.com\nDOMAIN-SUFFIX,meetings.googleapis.com' ]] && ok "google-meet domains" || bad "google-meet domains: $(body "$O/rules/google-meet.list" | tr '\n' '|')"
+[[ $(body "$O/rules/google-meet-ip.list") == $'IP-CIDR,142.250.82.0/24,no-resolve\nIP-CIDR,74.125.247.128/32,no-resolve\nIP-CIDR,74.125.250.0/24,no-resolve' ]] && ok "google-meet ips" || bad "google-meet ips: $(body "$O/rules/google-meet-ip.list" | tr '\n' '|')"
 grep -q $'\r' "$O"/rules/*.list && bad "no CR in output" || ok "no CR in output"
 
 # 2. порядок правил в shadowrocket.conf
 rules=$(sed -n '/^\[Rule\]/,$p' "$O/shadowrocket.conf" | grep -oE 'rules/[a-z-]+\.list|FINAL,DIRECT' | tr '\n' ' ')
-[[ $rules == "rules/custom-proxy.list rules/ru-inside.list rules/telegram.list rules/telegram-ip.list rules/meta-ip.list FINAL,DIRECT " ]] && ok "rule order" || bad "rule order: $rules"
+[[ $rules == "rules/custom-proxy.list rules/ru-inside.list rules/hodca.list rules/google-ai.list rules/google-meet.list rules/telegram.list rules/telegram-ip.list rules/meta-ip.list rules/google-meet-ip.list FINAL,DIRECT " ]] && ok "rule order" || bad "rule order: $rules"
+grep -q '^RULE-SET,https://cdn.jsdelivr.net/gh/injecto/candies-list@main/rules/google-meet-ip.list,PROXY,no-resolve$' "$O/shadowrocket.conf" && ok "google-meet-ip has no-resolve" || bad "google-meet-ip has no-resolve"
 grep -q '^RULE-SET,https://cdn.jsdelivr.net/gh/injecto/candies-list@main/rules/meta-ip.list,PROXY,no-resolve$' "$O/shadowrocket.conf" && ok "ip rule-set has no-resolve" || bad "ip rule-set has no-resolve"
 grep -q '^\[Proxy\]' "$O/shadowrocket.conf" && bad "no [Proxy] section" || ok "no [Proxy] section"
 grep -q '^update-url = https://cdn.jsdelivr.net/gh/injecto/candies-list@main/shadowrocket.conf$' "$O/shadowrocket.conf" && ok "update-url" || bad "update-url"

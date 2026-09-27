@@ -16,3 +16,5 @@ DOMAIN-SUFFIX,justinguitar.com
 DOMAIN-SUFFIX,steamdb.info
 # Не соединяется:
 DOMAIN-SUFFIX,opencritic.com
+# Vercel, IP 216.150.1.1 заблокирован у провайдера (TCP не устанавливается):
+DOMAIN-SUFFIX,6dofreviews.com

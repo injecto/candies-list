@@ -1,0 +1,7 @@
+# NAME: custom-direct.list
+# Ручные исключения «всегда напрямую»: стоят ПЕРВЫМИ, выше всех списков.
+# Сюда — сайты, которые попали в готовые списки, но через наш выход не работают.
+# Формат строки: DOMAIN-SUFFIX,<домен>  (или DOMAIN, DOMAIN-KEYWORD, IP-CIDR,<сеть>,no-resolve)
+# Кириллические домены — в punycode (xn--…).
+# itdoginfo geoblock; из Амстердама (vdsina) таймаут, из дома и RU-ДЦ открывается:
+DOMAIN-SUFFIX,habr.com

@@ -25,9 +25,15 @@ GitHub сам отключает scheduled workflow в публичном реп
 проверить и включить workflow заново во вкладке Actions (или просто запушить
 любой коммит).
 
+## Исключить сайт из VPN
+Если сайт есть в готовых списках, но через VPN не открывается (например, habr.com не
+пускает наш зарубежный выход), — строка в [`rules/custom-direct.list`](rules/custom-direct.list):
+`DOMAIN-SUFFIX,example.com`. Этот список стоит первым и перекрывает все остальные.
+
 ## Списки
 | Файл | Источник |
 |---|---|
+| custom-direct.list | вручную: **всегда напрямую**, стоит первым — для сайтов из готовых списков, которые через наш выход не работают |
 | custom-proxy.list | вручную |
 | ru-inside.list | itdoginfo/allow-domains Russia/inside |
 | hodca.list | itdoginfo Categories/hodca — сайты на Hetzner/OVH/DigitalOcean/Cloudflare/AWS/Akamai, которые режут по хостингу |

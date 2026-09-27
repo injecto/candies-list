@@ -6,7 +6,7 @@ FIX="file://$ROOT/test/fixtures"
 fail=0
 ok()   { echo "ok   - $1"; }
 bad()  { echo "FAIL - $1"; fail=1; }
-new_out() { local d; d=$(mktemp -d); mkdir -p "$d/rules"; cp "$ROOT/rules/custom-proxy.list" "$d/rules/"; echo "$d"; }
+new_out() { local d; d=$(mktemp -d); mkdir -p "$d/rules"; cp "$ROOT/rules/custom-proxy.list" "$ROOT/rules/custom-direct.list" "$d/rules/"; echo "$d"; }
 body() { grep -v '^#' "$1"; }
 
 # 1. нормализация: CRLF, комментарии, пустые, ведущая точка, дубли
@@ -23,7 +23,8 @@ grep -q $'\r' "$O"/rules/*.list && bad "no CR in output" || ok "no CR in output"
 
 # 2. порядок правил в shadowrocket.conf
 rules=$(sed -n '/^\[Rule\]/,$p' "$O/shadowrocket.conf" | grep -oE 'rules/[a-z-]+\.list|FINAL,DIRECT' | tr '\n' ' ')
-[[ $rules == "rules/custom-proxy.list rules/ru-inside.list rules/hodca.list rules/google-ai.list rules/google-meet.list rules/telegram.list rules/telegram-ip.list rules/meta-ip.list rules/google-meet-ip.list FINAL,DIRECT " ]] && ok "rule order" || bad "rule order: $rules"
+[[ $rules == "rules/custom-direct.list rules/custom-proxy.list rules/ru-inside.list rules/hodca.list rules/google-ai.list rules/google-meet.list rules/telegram.list rules/telegram-ip.list rules/meta-ip.list rules/google-meet-ip.list FINAL,DIRECT " ]] && ok "rule order" || bad "rule order: $rules"
+grep -q '^RULE-SET,https://cdn.jsdelivr.net/gh/injecto/candies-list@main/rules/custom-direct.list,DIRECT$' "$O/shadowrocket.conf" && ok "custom-direct is DIRECT" || bad "custom-direct is DIRECT"
 grep -q '^RULE-SET,https://cdn.jsdelivr.net/gh/injecto/candies-list@main/rules/google-meet-ip.list,PROXY,no-resolve$' "$O/shadowrocket.conf" && ok "google-meet-ip has no-resolve" || bad "google-meet-ip has no-resolve"
 grep -q '^RULE-SET,https://cdn.jsdelivr.net/gh/injecto/candies-list@main/rules/meta-ip.list,PROXY,no-resolve$' "$O/shadowrocket.conf" && ok "ip rule-set has no-resolve" || bad "ip rule-set has no-resolve"
 grep -q '^\[Proxy\]' "$O/shadowrocket.conf" && bad "no [Proxy] section" || ok "no [Proxy] section"
@@ -81,5 +82,13 @@ cmp -s "$O/telegram.before" "$O/rules/telegram.list" && ok "old list kept on htm
 # 12. кириллический домен в custom-proxy.list — понятная ошибка про punycode
 O=$(new_out); printf 'DOMAIN-SUFFIX,пример.рф\n' >> "$O/rules/custom-proxy.list"
 if SRC_BASE=$FIX "$ROOT/build.sh" "$O" 2>"$O/err"; then bad "cyrillic domain rejected"; else grep -qi 'punycode\|xn--' "$O/err" && ok "cyrillic domain message mentions punycode" || bad "cyrillic domain message: $(cat "$O/err")"; fi
+
+# 13. голый домен в custom-direct.list → ошибка с именем файла
+O=$(new_out); printf 'example.org\n' >> "$O/rules/custom-direct.list"
+if SRC_BASE=$FIX "$ROOT/build.sh" "$O" 2>"$O/err"; then bad "custom-direct bare domain rejected"; else grep -q 'custom-direct.list:.*example.org' "$O/err" && ok "custom-direct bare domain rejected" || bad "custom-direct message: $(cat "$O/err")"; fi
+
+# 14. нет custom-direct.list → ошибка
+O=$(new_out); rm "$O/rules/custom-direct.list"
+SRC_BASE=$FIX "$ROOT/build.sh" "$O" 2>/dev/null && bad "missing custom-direct rejected" || ok "missing custom-direct rejected"
 
 exit $fail

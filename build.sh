@@ -62,22 +62,25 @@ subnets Subnets/IPv4/telegram.lst   telegram-ip
 subnets Subnets/IPv4/meta.lst       meta-ip         # Meta по IP: у Quest SNI скрыт за ECH
 subnets Subnets/IPv4/google_meet.lst google-meet-ip # медиа звонков Meet — UDP без домена, ловится только по IP
 
-# Ручной список: каждая строка обязана быть правилом, иначе клиенты её молча выбросят.
+# Ручные списки: каждая строка обязана быть правилом, иначе клиенты её молча выбросят.
 # Комментарий допустим только на всю строку (первый непробельный символ — '#'):
 # инлайн-хвост " # note" mihomo/Shadowrocket не режут — они пропускают строку целиком,
 # только если '#' стоит первым символом, поэтому инлайн-комментарий тут — ошибка, а не
 # то, что можно молча обрезать.
-CUSTOM=$OUT/rules/custom-proxy.list
-[[ -f $CUSTOM ]] || die "нет $CUSTOM"
-n=0
-while IFS= read -r line || [[ -n $line ]]; do
-  n=$((n+1))
-  l=$(tr -d '\r' <<<"$line" | sed -E 's/^[[:space:]]+//; s/[[:space:]]+$//')
-  [[ -z $l ]] && continue
-  [[ $l == \#* ]] && continue
-  is_rule "$l" \
-    || die "custom-proxy.list:$n: '$l' — нужен вид DOMAIN-SUFFIX,<домен> или IP-CIDR,<сеть>,no-resolve; кириллические домены — в punycode (xn--…)"
-done < "$CUSTOM"
+check_manual() {
+  local file=$OUT/rules/$1 n=0 line l
+  [[ -f $file ]] || die "нет $file"
+  while IFS= read -r line || [[ -n $line ]]; do
+    n=$((n+1))
+    l=$(tr -d '\r' <<<"$line" | sed -E 's/^[[:space:]]+//; s/[[:space:]]+$//')
+    [[ -z $l ]] && continue
+    [[ $l == \#* ]] && continue
+    is_rule "$l" \
+      || die "$1:$n: '$l' — нужен вид DOMAIN-SUFFIX,<домен> или IP-CIDR,<сеть>,no-resolve; кириллические домены — в punycode (xn--…)"
+  done < "$file"
+}
+check_manual custom-direct.list   # «всегда напрямую» — первым правилом, выше всех списков
+check_manual custom-proxy.list
 
 cat > "$TMP/shadowrocket.conf" <<EOF
 # candies-list: общие правила для Shadowrocket. Сервер добавляется в приложении отдельно.
@@ -95,6 +98,7 @@ tun-excluded-routes = 10.0.0.0/8, 100.64.0.0/10, 127.0.0.0/8, 169.254.0.0/16, 17
 update-url = $CDN_BASE/shadowrocket.conf
 
 [Rule]
+RULE-SET,$CDN_BASE/rules/custom-direct.list,DIRECT
 RULE-SET,$CDN_BASE/rules/custom-proxy.list,PROXY
 RULE-SET,$CDN_BASE/rules/ru-inside.list,PROXY
 RULE-SET,$CDN_BASE/rules/hodca.list,PROXY

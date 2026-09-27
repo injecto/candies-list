@@ -7,14 +7,16 @@
 1. Добавить сервер: в приложении Amnezia создать клиента xray для устройства,
    скопировать `vless://…` и в Shadowrocket нажать «+» (или отсканировать QR).
 2. Config → «+» → Download from URL:
-   `https://cdn.jsdelivr.net/gh/injecto/candies-list@main/shadowrocket.conf`
+   `https://raw.githubusercontent.com/injecto/candies-list/main/shadowrocket.conf`
 3. Выбрать этот конфиг и сервер, включить.
 
 ## Добавить исключение
 Дописать строку в [`rules/custom-proxy.list`](rules/custom-proxy.list):
 `DOMAIN-SUFFIX,example.com`. В течение нескольких минут правило работает на pi
-(jsDelivr иногда отдаёт старую версию до ~10 минут), в Shadowrocket — после
-обновления конфига (Config → потянуть вниз).
+(берёт файлы с jsDelivr, тот иногда отдаёт старую версию до ~10 минут), в
+Shadowrocket — после обновления конфига (Config → потянуть вниз); он берёт файлы
+с raw.githubusercontent, кэш там 5 минут. jsDelivr для Shadowrocket не годится:
+он велит клиентам кэшировать файлы на 7 дней.
 Строка не того вида — это нарочно красная сборка: Action упадёт, GitHub
 пришлёт письмо, а списки не обновятся, пока строку не поправить (сам
 custom-proxy.list при этом раздаётся как есть, так что до правки битая строка

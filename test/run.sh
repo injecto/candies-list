@@ -24,11 +24,11 @@ grep -q $'\r' "$O"/rules/*.list && bad "no CR in output" || ok "no CR in output"
 # 2. порядок правил в shadowrocket.conf
 rules=$(sed -n '/^\[Rule\]/,$p' "$O/shadowrocket.conf" | grep -oE 'rules/[a-z-]+\.list|FINAL,DIRECT' | tr '\n' ' ')
 [[ $rules == "rules/custom-direct.list rules/custom-proxy.list rules/ru-inside.list rules/hodca.list rules/google-ai.list rules/google-meet.list rules/telegram.list rules/telegram-ip.list rules/meta-ip.list rules/google-meet-ip.list FINAL,DIRECT " ]] && ok "rule order" || bad "rule order: $rules"
-grep -q '^RULE-SET,https://cdn.jsdelivr.net/gh/injecto/candies-list@main/rules/custom-direct.list,DIRECT$' "$O/shadowrocket.conf" && ok "custom-direct is DIRECT" || bad "custom-direct is DIRECT"
-grep -q '^RULE-SET,https://cdn.jsdelivr.net/gh/injecto/candies-list@main/rules/google-meet-ip.list,PROXY,no-resolve$' "$O/shadowrocket.conf" && ok "google-meet-ip has no-resolve" || bad "google-meet-ip has no-resolve"
-grep -q '^RULE-SET,https://cdn.jsdelivr.net/gh/injecto/candies-list@main/rules/meta-ip.list,PROXY,no-resolve$' "$O/shadowrocket.conf" && ok "ip rule-set has no-resolve" || bad "ip rule-set has no-resolve"
+grep -q '^RULE-SET,https://raw.githubusercontent.com/injecto/candies-list/main/rules/custom-direct.list,DIRECT$' "$O/shadowrocket.conf" && ok "custom-direct is DIRECT" || bad "custom-direct is DIRECT"
+grep -q '^RULE-SET,https://raw.githubusercontent.com/injecto/candies-list/main/rules/google-meet-ip.list,PROXY,no-resolve$' "$O/shadowrocket.conf" && ok "google-meet-ip has no-resolve" || bad "google-meet-ip has no-resolve"
+grep -q '^RULE-SET,https://raw.githubusercontent.com/injecto/candies-list/main/rules/meta-ip.list,PROXY,no-resolve$' "$O/shadowrocket.conf" && ok "ip rule-set has no-resolve" || bad "ip rule-set has no-resolve"
 grep -q '^\[Proxy\]' "$O/shadowrocket.conf" && bad "no [Proxy] section" || ok "no [Proxy] section"
-grep -q '^update-url = https://cdn.jsdelivr.net/gh/injecto/candies-list@main/shadowrocket.conf$' "$O/shadowrocket.conf" && ok "update-url" || bad "update-url"
+grep -q '^update-url = https://raw.githubusercontent.com/injecto/candies-list/main/shadowrocket.conf$' "$O/shadowrocket.conf" && ok "update-url" || bad "update-url"
 
 # 3. идемпотентность: повторная сборка ничего не меняет (кроме строки UPDATED)
 cp -r "$O" "$O.prev"; SRC_BASE=$FIX "$ROOT/build.sh" "$O" >/dev/null 2>&1
@@ -90,5 +90,9 @@ if SRC_BASE=$FIX "$ROOT/build.sh" "$O" 2>"$O/err"; then bad "custom-direct bare 
 # 14. нет custom-direct.list → ошибка
 O=$(new_out); rm "$O/rules/custom-direct.list"
 SRC_BASE=$FIX "$ROOT/build.sh" "$O" 2>/dev/null && bad "missing custom-direct rejected" || ok "missing custom-direct rejected"
+
+# 15. в конфиге Shadowrocket нет jsDelivr: он велит клиентам кэшировать на 7 дней
+O=$(new_out); SRC_BASE=$FIX "$ROOT/build.sh" "$O" >/dev/null 2>&1
+grep -q 'jsdelivr' "$O/shadowrocket.conf" && bad "no jsdelivr in shadowrocket.conf" || ok "no jsdelivr in shadowrocket.conf"
 
 exit $fail

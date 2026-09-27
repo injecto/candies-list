@@ -1,13 +1,17 @@
 #!/usr/bin/env bash
 # Собирает общие правила для mihomo и Shadowrocket.
-# Usage: ./build.sh [OUT_DIR]   env: SRC_BASE (источник itdoginfo), CDN_BASE (адрес раздачи)
+# Usage: ./build.sh [OUT_DIR]   env: SRC_BASE (источник itdoginfo), SR_BASE (откуда Shadowrocket берёт файлы)
 # Всё сначала собирается во временный каталог; OUT_DIR трогается только если всё прошло.
 set -euo pipefail
 export LC_ALL=C   # детерминированная сортировка: иначе в en_US «DOMAIN,» и «DOMAIN-SUFFIX,» меняются местами
 
 OUT=${1:-.}
 SRC_BASE=${SRC_BASE:-https://raw.githubusercontent.com/itdoginfo/allow-domains/main}
-CDN_BASE=${CDN_BASE:-https://cdn.jsdelivr.net/gh/injecto/candies-list@main}
+# Адрес, с которого Shadowrocket берёт конфиг и списки. Не jsDelivr: тот велит клиентам
+# кэшировать файлы на 7 дней (max-age=604800), и Shadowrocket неделю живёт на старой
+# версии — сброс кэша CDN до устройства не доходит. У raw.githubusercontent max-age=300.
+# mihomo на pi берёт те же файлы с jsDelivr: HTTP-кэша у него нет, там это не мешает.
+SR_BASE=${SR_BASE:-https://raw.githubusercontent.com/injecto/candies-list/main}
 TMP=$(mktemp -d); trap 'rm -rf "$TMP"' EXIT
 mkdir -p "$TMP/rules"
 
@@ -95,19 +99,19 @@ fallback-dns-server = system
 dns-direct-fallback-proxy = true
 skip-proxy = 192.168.0.0/16, 10.0.0.0/8, 172.16.0.0/12, localhost, *.local, captive.apple.com
 tun-excluded-routes = 10.0.0.0/8, 100.64.0.0/10, 127.0.0.0/8, 169.254.0.0/16, 172.16.0.0/12, 192.168.0.0/16, 224.0.0.0/4, 255.255.255.255/32
-update-url = $CDN_BASE/shadowrocket.conf
+update-url = $SR_BASE/shadowrocket.conf
 
 [Rule]
-RULE-SET,$CDN_BASE/rules/custom-direct.list,DIRECT
-RULE-SET,$CDN_BASE/rules/custom-proxy.list,PROXY
-RULE-SET,$CDN_BASE/rules/ru-inside.list,PROXY
-RULE-SET,$CDN_BASE/rules/hodca.list,PROXY
-RULE-SET,$CDN_BASE/rules/google-ai.list,PROXY
-RULE-SET,$CDN_BASE/rules/google-meet.list,PROXY
-RULE-SET,$CDN_BASE/rules/telegram.list,PROXY
-RULE-SET,$CDN_BASE/rules/telegram-ip.list,PROXY,no-resolve
-RULE-SET,$CDN_BASE/rules/meta-ip.list,PROXY,no-resolve
-RULE-SET,$CDN_BASE/rules/google-meet-ip.list,PROXY,no-resolve
+RULE-SET,$SR_BASE/rules/custom-direct.list,DIRECT
+RULE-SET,$SR_BASE/rules/custom-proxy.list,PROXY
+RULE-SET,$SR_BASE/rules/ru-inside.list,PROXY
+RULE-SET,$SR_BASE/rules/hodca.list,PROXY
+RULE-SET,$SR_BASE/rules/google-ai.list,PROXY
+RULE-SET,$SR_BASE/rules/google-meet.list,PROXY
+RULE-SET,$SR_BASE/rules/telegram.list,PROXY
+RULE-SET,$SR_BASE/rules/telegram-ip.list,PROXY,no-resolve
+RULE-SET,$SR_BASE/rules/meta-ip.list,PROXY,no-resolve
+RULE-SET,$SR_BASE/rules/google-meet-ip.list,PROXY,no-resolve
 FINAL,DIRECT
 EOF
 

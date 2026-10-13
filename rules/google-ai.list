@@ -1,6 +1,6 @@
 # NAME: google-ai.list
 # SOURCE: itdoginfo Services/google_ai.lst
-# UPDATED: 2026-09-26T11:15:37Z
+# UPDATED: 2026-10-13T10:44:06Z
 # TOTAL: 28
 DOMAIN-SUFFIX,ai.google.dev
 DOMAIN-SUFFIX,aida.googleapis.com

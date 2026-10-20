@@ -14,6 +14,8 @@ DOMAIN-SUFFIX,equipboard.com
 DOMAIN-SUFFIX,guitarcenter.com
 DOMAIN-SUFFIX,justinguitar.com
 DOMAIN-SUFFIX,steamdb.info
+# Miro ушёл из России и закрывает доступ с российских IP:
+DOMAIN-SUFFIX,miro.com
 # Не соединяется:
 DOMAIN-SUFFIX,opencritic.com
 # Vercel, IP 216.150.1.1 заблокирован у провайдера (TCP не устанавливается):

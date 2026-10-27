@@ -1,6 +1,6 @@
 # NAME: google-meet-ip.list
 # SOURCE: itdoginfo Subnets/IPv4/google_meet.lst
-# UPDATED: 2026-10-13T10:44:07Z
+# UPDATED: 2026-10-27T09:06:56Z
 # TOTAL: 3
 IP-CIDR,142.250.82.0/24,no-resolve
 IP-CIDR,74.125.247.128/32,no-resolve

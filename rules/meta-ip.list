@@ -1,7 +1,7 @@
 # NAME: meta-ip.list
 # SOURCE: itdoginfo Subnets/IPv4/meta.lst
-# UPDATED: 2026-11-03T10:58:50Z
-# TOTAL: 80
+# UPDATED: 2026-11-24T13:52:40Z
+# TOTAL: 81
 IP-CIDR,102.132.112.0/24,no-resolve
 IP-CIDR,102.132.115.0/24,no-resolve
 IP-CIDR,102.132.116.0/23,no-resolve
@@ -44,6 +44,7 @@ IP-CIDR,157.240.144.0/24,no-resolve
 IP-CIDR,157.240.156.0/23,no-resolve
 IP-CIDR,157.240.158.0/24,no-resolve
 IP-CIDR,157.240.169.0/24,no-resolve
+IP-CIDR,157.240.170.0/24,no-resolve
 IP-CIDR,157.240.175.0/24,no-resolve
 IP-CIDR,157.240.177.0/24,no-resolve
 IP-CIDR,157.240.179.0/24,no-resolve
